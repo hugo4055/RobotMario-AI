@@ -18,7 +18,7 @@
       <div class="eyebrow"><span>✦</span> CRIATIVIDADE + GERAÇÃO PROCEDURAL</div>
       <h1>Imagine uma fase.<br><span>Construa do seu jeito.</span></h1>
       <p>Monte fases em um editor visual e gere um ponto de partida descrevendo sua ideia em português. Funciona direto no navegador, sem instalar nada.</p>
-      <div class="hero-pills"><span>● Editor visual</span><span>● IA procedural offline</span><span>● Salvar em JSON</span></div>
+      <div class="hero-pills"><span>● Editor visual</span><span>● IA online + modo offline</span><span>● Salvar em JSON</span></div>
     </section>
     <section class="workspace">
       <aside class="sidebar">
@@ -57,8 +57,30 @@
         <div id="message" class="message" role="status" aria-live="polite"></div>
       </section>
     </section>
+
+    <section class="integration-section" id="ai-tools">
+      <div class="section-intro"><span class="panel-kicker">04 / IA ONLINE</span><h2>Escolha sua inteligência artificial</h2><p>Conecte-se com sua própria chave de API. A chave fica no navegador e não é salva no GitHub.</p></div>
+      <div class="integration-card">
+        <div class="ai-fields">
+          <div><label class="field-label" for="aiProvider">Provedor</label><select id="aiProvider" class="text-input"><option value="groq">Groq</option><option value="xai">xAI — Grok</option><option value="openai">OpenAI</option></select></div>
+          <div><label class="field-label" for="aiModel">Modelo</label><input id="aiModel" class="text-input" value="llama-3.3-70b-versatile" autocomplete="off"></div>
+          <div class="api-key-field"><label class="field-label" for="aiKey">API key</label><input id="aiKey" class="text-input" type="password" placeholder="Cole sua chave aqui" autocomplete="off"></div>
+        </div>
+        <div class="ai-actions"><button id="aiGenerateBtn" class="primary-btn">✦ Gerar fase com IA</button><button id="clearKeyBtn" class="secondary-btn">Limpar chave</button></div>
+        <p class="helper">A chave não é enviada ao RobotMario-AI nem gravada no arquivo do projeto; ela é enviada diretamente ao provedor escolhido. Não use uma chave em computador compartilhado. O uso pode gerar cobranças conforme sua conta.</p>
+      </div>
+    </section>
+    <section class="integration-section" id="swe-tools">
+      <div class="section-intro"><span class="panel-kicker">05 / SMM:WE</span><h2>Conversor JSON ↔ .swe</h2><p>Importe um .swe para decodificar o conteúdo ou cole o JSON de uma fase para gerar um arquivo .swe.</p></div>
+      <div class="integration-card">
+        <div class="swe-actions"><button id="loadSweBtn" class="secondary-btn">📂 Abrir .swe</button><input id="sweFileInput" type="file" accept=".swe,text/plain" hidden><button id="exportSweBtn" class="primary-btn">↓ Exportar .swe assinado</button><button id="formatSweJsonBtn" class="secondary-btn">Formatar JSON</button></div>
+        <label class="field-label" for="sweJsonInput">JSON da fase</label>
+        <textarea id="sweJsonInput" class="text-input swe-json" spellcheck="false" placeholder="Cole aqui o JSON válido do SMM:WE..."></textarea>
+        <p class="helper">O conversor segue o método do código enviado: JSON minificado → Base64 UTF-8 → HMAC-SHA1 de 40 caracteres hexadecimais. A compatibilidade com todas as versões do jogo ainda precisa ser testada. Não envie arquivos pessoais ou chaves de API neste campo.</p>
+      </div>
+    </section>
     <section class="roadmap">
-      <div><span class="panel-kicker">PRÓXIMAS ETAPAS</span><h2>Um protótipo em evolução</h2><p>O foco agora é validar os formatos reais do jogo antes de prometer compatibilidade.</p></div>
+      <div><span class="panel-kicker">PRÓXIMAS ETAPAS</span><h2>Um protótipo em evolução</h2><p>O foco agora é testar os formatos reais do jogo e validar a compatibilidade do conversor .swe.</p></div>
       <div class="roadmap-list"><span><b>01</b> Analisar arquivos do SMM:WE com REA</span><span><b>02</b> Identificar formato de fase e recursos</span><span><b>03</b> Implementar importação/exportação compatível, se possível</span></div>
     </section>
     <footer><span>RobotMario-AI <span class="muted">· protótipo comunitário independente</span></span><a href="https://github.com/hugo4055/RobotMario-AI" target="_blank" rel="noreferrer">Ver código no GitHub ↗</a></footer>
