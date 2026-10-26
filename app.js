@@ -106,4 +106,104 @@
   for(let x=0;x<COLS;x++)for(let y=11;y<ROWS;y++)grid[y][x]="ground";
   for(const [x,y,t] of [[7,8,"block"],[8,8,"coin"],[13,7,"block"],[13,6,"coin"],[20,9,"pipe"],[20,10,"pipe"],[25,10,"enemy"]])grid[y][x]=t;
   render(); updateTitle();
+
+  // Provedores de IA: chamadas diretas, sem armazenar a chave no projeto.
+  const aiProviders = {
+    groq: { endpoint: "https://api.groq.com/openai/v1/chat/completions", model: "llama-3.3-70b-versatile" },
+    xai: { endpoint: "https://api.x.ai/v1/chat/completions", model: "grok-3-mini" },
+    openai: { endpoint: "https://api.openai.com/v1/chat/completions", model: "gpt-4.1-mini" }
+  };
+  const providerSelect = $("aiProvider"), modelInput = $("aiModel"), keyInput = $("aiKey");
+  if (providerSelect && modelInput) {
+    providerSelect.addEventListener("change", () => { modelInput.value = aiProviders[providerSelect.value].model; });
+  }
+  $("clearKeyBtn")?.addEventListener("click", () => { keyInput.value = ""; say("Chave apagada deste formulário."); });
+  $("aiGenerateBtn")?.addEventListener("click", async () => {
+    const apiKey = keyInput.value.trim();
+    const provider = aiProviders[providerSelect.value];
+    const model = modelInput.value.trim();
+    const userPrompt = $("prompt").value.trim();
+    if (!apiKey) { say("Cole primeiro sua API key do provedor escolhido.", true); keyInput.focus(); return; }
+    if (!model) { say("Informe o nome do modelo.", true); modelInput.focus(); return; }
+    if (!userPrompt) { say("Descreva a fase no campo de descrição antes de chamar a IA.", true); $("prompt").focus(); return; }
+    const btn = $("aiGenerateBtn"); btn.disabled = true; btn.textContent = "Gerando com IA...";
+    try {
+      const systemPrompt = "Você cria layouts para um protótipo de editor de fases de plataforma. Responda SOMENTE com JSON válido, sem markdown, no formato {\"name\": string, \"width\":32, \"height\":14, \"grid\": string[][]}. grid deve ter exatamente 14 linhas e 32 colunas. Cada célula deve ser exatamente um destes valores: empty, ground, block, coin, pipe, enemy, hazard. Faça uma fase jogável, com chão na parte inferior, caminho inicial e final, e obstáculos distribuídos com moderação. Não invente campos adicionais.";
+      const response = await fetch(provider.endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + apiKey },
+        body: JSON.stringify({ model, temperature: 0.7, messages: [{ role: "system", content: systemPrompt }, { role: "user", content: "Nome da fase: " + ($("levelName").value.trim() || "Fase criada por IA") + "\nIdeia: " + userPrompt }] })
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result?.error?.message || ("Erro HTTP " + response.status + ". Confira a chave, o modelo e o saldo/limite da API."));
+      const answer = result?.choices?.[0]?.message?.content;
+      if (typeof answer !== "string") throw new Error("A IA não retornou texto no formato esperado.");
+      const clean = answer.replace(/^\s*```(?:json)?/i, "").replace(/```\s*$/i, "").trim();
+      const data = JSON.parse(clean);
+      if (data.width !== COLS || data.height !== ROWS || !Array.isArray(data.grid) || data.grid.length !== ROWS ||
+          data.grid.some(row => !Array.isArray(row) || row.length !== COLS || row.some(tile => !tiles.includes(tile)))) {
+        throw new Error("A IA retornou uma grade inválida. Tente novamente ou peça uma fase mais simples.");
+      }
+      grid = data.grid.map(row => [...row]);
+      $("levelName").value = String(data.name || $("levelName").value || "Fase gerada por IA").slice(0,60);
+      updateTitle(); render(); say("Fase criada por " + providerSelect.options[providerSelect.selectedIndex].text + " (" + model + "). Revise a grade antes de exportar.");
+    } catch (err) {
+      say("Não foi possível gerar a fase: " + (err.message || "erro desconhecido"), true);
+    } finally {
+      btn.disabled = false; btn.textContent = "✦ Gerar fase com IA";
+    }
+  });
+
+  // Conversor de fase baseado no snippet fornecido pelo usuário.
+  const SWE_SIGNING_KEY = "2559F35097-2021";
+  const sweInput = $("sweJsonInput");
+  function utf8ToBase64(text) {
+    const bytes = new TextEncoder().encode(text);
+    let binary = "";
+    for (let i=0; i<bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    return btoa(binary);
+  }
+  function base64ToUtf8(text) {
+    const clean = text.replace(/[^A-Za-z0-9+/=]/g, "");
+    const binary = atob(clean), bytes = new Uint8Array(binary.length);
+    for (let i=0; i<binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return new TextDecoder("utf-8", {fatal:true}).decode(bytes);
+  }
+  async function hmacSha1Hex(text, secret) {
+    const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), {name:"HMAC", hash:"SHA-1"}, false, ["sign"]);
+    const signature = new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(text)));
+    return Array.from(signature, byte => byte.toString(16).padStart(2,"0")).join("");
+  }
+  $("loadSweBtn")?.addEventListener("click", () => $("sweFileInput").click());
+  $("sweFileInput")?.addEventListener("change", async event => {
+    const file = event.target.files?.[0]; event.target.value = "";
+    if (!file) return;
+    try {
+      if (file.size > 10_000_000) throw new Error("Arquivo maior que 10 MB.");
+      let content = (await file.text()).replace(/[\x00-\x1F\x7F-\x9F]/g, "").trim();
+      if (content.length <= 40) throw new Error("O arquivo é muito pequeno para conter o payload esperado.");
+      const decoded = base64ToUtf8(content.slice(0, -40));
+      const parsed = JSON.parse(decoded);
+      sweInput.value = JSON.stringify(parsed, null, 2);
+      say("Arquivo .swe decodificado. O conversor não verificou a assinatura; confira se o jogo aceita o arquivo.");
+    } catch (err) { say("Erro ao importar .swe: " + (err.message || "arquivo inválido"), true); }
+  });
+  $("formatSweJsonBtn")?.addEventListener("click", () => {
+    try { sweInput.value = JSON.stringify(JSON.parse(sweInput.value), null, 2); say("JSON formatado e validado."); }
+    catch (err) { say("JSON inválido: " + err.message, true); }
+  });
+  $("exportSweBtn")?.addEventListener("click", async () => {
+    try {
+      const parsed = JSON.parse(sweInput.value);
+      const compact = JSON.stringify(parsed);
+      const base64 = utf8ToBase64(compact);
+      const signature = await hmacSha1Hex(base64, SWE_SIGNING_KEY);
+      const blob = new Blob([base64 + signature], {type:"text/plain;charset=utf-8"});
+      const url = URL.createObjectURL(blob), a = document.createElement("a");
+      a.href = url; a.download = (String($("levelName").value || "level").replace(/[^a-z0-9-_]/gi,"-").replace(/-+/g,"-") || "level") + ".swe";
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+      say("Arquivo .swe exportado pelo método do conversor. Teste em uma cópia da fase e mantenha backup.");
+    } catch (err) { say("Não foi possível exportar .swe: " + (err.message || "JSON inválido"), true); }
+  });
+
 })();
