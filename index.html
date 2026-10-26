@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10101a">
+  <meta name="description" content="RobotMario-AI: editor visual de fases de plataforma com geração procedural offline.">
+  <title>RobotMario-AI — Editor de fases</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="RobotMario-AI início"><span class="brand-icon">R</span><span>RobotMario<span class="accent">-AI</span><small>EDITOR DE FASES</small></span></a>
+    <div class="top-actions"><span class="status"><i></i> Modo offline disponível</span><a class="github-link" href="https://github.com/hugo4055/RobotMario-AI" target="_blank" rel="noreferrer">GitHub ↗</a></div>
+  </header>
+  <main class="layout">
+    <section class="hero">
+      <div class="eyebrow"><span>✦</span> CRIATIVIDADE + GERAÇÃO PROCEDURAL</div>
+      <h1>Imagine uma fase.<br><span>Construa do seu jeito.</span></h1>
+      <p>Monte fases em um editor visual e gere um ponto de partida descrevendo sua ideia em português. Funciona direto no navegador, sem instalar nada.</p>
+      <div class="hero-pills"><span>● Editor visual</span><span>● IA procedural offline</span><span>● Salvar em JSON</span></div>
+    </section>
+    <section class="workspace">
+      <aside class="sidebar">
+        <div class="panel-head"><div><span class="panel-kicker">01 / FERRAMENTAS</span><h2>Construtor</h2></div><span class="keyboard">BETA</span></div>
+        <label class="field-label" for="levelName">Nome da fase</label>
+        <input id="levelName" class="text-input" maxlength="60" value="Minha primeira fase" placeholder="Nome da fase">
+        <label class="field-label" for="prompt">Descreva sua fase</label>
+        <textarea id="prompt" class="text-input prompt-input" rows="4" placeholder="Ex.: uma fase noturna com canos, moedas e alguns inimigos..."></textarea>
+        <button id="generateBtn" class="primary-btn"><span>✦</span> Gerar fase</button>
+        <p class="helper">A geração atual é procedural e local. Ela não usa um modelo de IA online.</p>
+        <div class="separator"></div>
+        <div class="panel-head compact"><div><span class="panel-kicker">02 / PALETA</span><h2>Peças</h2></div><span class="muted" id="selectedLabel">Chão</span></div>
+        <div class="palette" id="palette">
+          <button class="tile-option selected" data-tile="ground"><span class="tile-preview ground"></span><span>Chão</span><kbd>1</kbd></button>
+          <button class="tile-option" data-tile="block"><span class="tile-preview block"></span><span>Bloco</span><kbd>2</kbd></button>
+          <button class="tile-option" data-tile="coin"><span class="tile-preview coin"></span><span>Moeda</span><kbd>3</kbd></button>
+          <button class="tile-option" data-tile="pipe"><span class="tile-preview pipe"></span><span>Cano</span><kbd>4</kbd></button>
+          <button class="tile-option" data-tile="enemy"><span class="tile-preview enemy"></span><span>Inimigo</span><kbd>5</kbd></button>
+          <button class="tile-option" data-tile="hazard"><span class="tile-preview hazard"></span><span>Perigo</span><kbd>6</kbd></button>
+          <button class="tile-option" data-tile="empty"><span class="tile-preview erase">×</span><span>Apagar</span><kbd>0</kbd></button>
+        </div>
+        <div class="separator"></div>
+        <div class="panel-head compact"><div><span class="panel-kicker">03 / ARQUIVO</span><h2>Projeto</h2></div></div>
+        <div class="file-actions"><button id="exportBtn" class="secondary-btn">↓ Exportar JSON</button><button id="importBtn" class="secondary-btn">↑ Importar JSON</button><input id="fileInput" type="file" accept=".json,application/json" hidden></div>
+        <button id="clearBtn" class="text-btn">Limpar fase</button>
+        <p class="fine-print">O JSON é o formato deste protótipo. Ainda não é um arquivo .swe do SMM:WE.</p>
+      </aside>
+      <section class="editor-panel">
+        <div class="editor-toolbar"><div><span class="panel-kicker">EDITOR DE MAPA</span><h2 id="canvasTitle">Minha primeira fase</h2></div><div class="editor-stats"><span><b id="tileCount">0</b> peças</span><span><b>32 × 14</b> grade</span></div></div>
+        <div class="canvas-wrap"><div id="levelGrid" class="level-grid" role="grid" aria-label="Grade de edição da fase"></div></div>
+        <div class="editor-footer"><span><i class="legend-dot"></i> Clique para colocar peças</span><span>Arraste para pintar · clique direito para apagar</span></div>
+        <div class="bottom-panels">
+          <article class="info-card"><span class="info-icon purple">✦</span><div><h3>Geração inteligente</h3><p>Descreva tema e elementos para gerar uma estrutura inicial. Edite tudo depois.</p></div></article>
+          <article class="info-card"><span class="info-icon green">↗</span><div><h3>Seu projeto, seu controle</h3><p>Exporte e importe o JSON para continuar de onde parou.</p></div></article>
+        </div>
+        <div id="message" class="message" role="status" aria-live="polite"></div>
+      </section>
+    </section>
+    <section class="roadmap">
+      <div><span class="panel-kicker">PRÓXIMAS ETAPAS</span><h2>Um protótipo em evolução</h2><p>O foco agora é validar os formatos reais do jogo antes de prometer compatibilidade.</p></div>
+      <div class="roadmap-list"><span><b>01</b> Analisar arquivos do SMM:WE com REA</span><span><b>02</b> Identificar formato de fase e recursos</span><span><b>03</b> Implementar importação/exportação compatível, se possível</span></div>
+    </section>
+    <footer><span>RobotMario-AI <span class="muted">· protótipo comunitário independente</span></span><a href="https://github.com/hugo4055/RobotMario-AI" target="_blank" rel="noreferrer">Ver código no GitHub ↗</a></footer>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
